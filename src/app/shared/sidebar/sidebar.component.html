@@ -1,0 +1,73 @@
+<div class="aside-menu flex-column-fluid">
+  <!--begin::Aside Menu-->
+  <div
+    class="hover-scroll-overlay-y"
+    id="kt_aside_menu_wrapper"
+    data-kt-scroll="true"
+    data-kt-scroll-activate="{default: false, lg: true}"
+    data-kt-scroll-height="auto"
+    data-kt-scroll-dependencies="#kt_aside_logo, #kt_aside_footer"
+    data-kt-scroll-wrappers="#kt_aside_menu"
+    data-kt-scroll-offset="0"
+  >
+    <!--begin::Menu-->
+    <div
+      class="menu menu-column menu-title-gray-800 menu-state-title-primary menu-state-icon-primary menu-state-bullet-primary menu-arrow-gray-500"
+      id="#kt_aside_menu"
+      data-kt-menu="true"
+    >
+      <!-- Iteramos sobre los elementos del menú -->
+      @for (item of menuItems; track item.title) {
+        
+        <!-- Si es un encabezado -->
+        @if (item.heading) {
+          <div class="menu-item pt-5">
+            <div class="menu-content">
+              <span class="menu-heading fw-bold text-uppercase fs-7">{{ item.title }}</span>
+            </div>
+          </div>
+        }
+        
+        <!-- Si es un elemento normal sin submenú -->
+        @if (!item.heading && !item.submenu) {
+          <div data-kt-menu-trigger="click" class="menu-item">
+            <span class="menu-link">
+              <span class="menu-icon">
+                <i class="{{ item.icon }}"></i>
+              </span>
+              <span [routerLink]="item.route" class="menu-title">{{ item.title }}</span>
+            </span>
+          </div>
+        }
+        
+        <!-- Si es un elemento con submenú -->
+        @if (!item.heading && item.submenu) {
+          <div data-kt-menu-trigger="click" class="menu-item menu-accordion">
+            <span class="menu-link">
+              <span class="menu-icon">
+                <i class="{{ item.icon }}"></i>
+              </span>
+              <span class="menu-title">{{ item.title }}</span>
+              <span class="menu-arrow"></span>
+            </span>
+            
+            <!-- Submenú -->
+            <div class="menu-sub menu-sub-accordion">
+              @for (subItem of item.submenu; track subItem.title) {
+                <div class="menu-item">
+                  <a class="menu-link" [routerLink]="subItem.route">
+                    <span class="menu-bullet">
+                      <span class="bullet bullet-dot"></span>
+                    </span>
+                    <span class="menu-title">{{ subItem.title }}</span>
+                  </a>
+                </div>
+              }
+            </div>
+          </div>
+        }
+      }
+    </div>
+    <!--end::Menu-->
+  </div>
+</div>
