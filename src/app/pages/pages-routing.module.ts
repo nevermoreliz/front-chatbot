@@ -13,8 +13,13 @@ const routes: Routes = [
     children: [
       { path: '', component: DasboardComponent },
       { path: 'perfil', component: PerfilComponent, data: { titulo: 'Perfil de Usuario' } },
+      {
+        path: 'usuario',
+        loadChildren: () => import('./usuario/usuario.module').then(m => m.UsuarioModule),
+      }
     ],
   },
+  
 ];
 
 @NgModule({

@@ -1,5 +1,7 @@
 import { Component } from '@angular/core';
 import { UsuarioService } from '../../services/usuario.service';
+import { NavigationEnd, Router } from '@angular/router';
+import { filter } from 'rxjs';
 
 interface MenuItem {
   title: string;
@@ -8,6 +10,7 @@ interface MenuItem {
   submenu?: MenuItem[];
   heading?: boolean;
   roles?: string[];
+  active?: boolean;
 }
 
 @Component({
@@ -20,14 +23,27 @@ export class SidebarComponent {
 
   menuItems: MenuItem[] = [];
   userRoles: string[] = [];
+  currentUrl: string = '';
 
-  constructor(private usuarioService: UsuarioService) { }
+  constructor(private usuarioService: UsuarioService,private router: Router) { }
 
   ngOnInit(): void {
     // Obtener roles del usuario desde el servicio
     this.userRoles = this.usuarioService.Usuario?.roles || [];
 
     // TODO: ['superadmin','agente'] son los roles que existen
+
+    // Suscribirse a los eventos de navegación para actualizar el estado activo
+    this.router.events.pipe(
+      filter(event => event instanceof NavigationEnd)
+    ).subscribe(() => {
+      this.currentUrl = this.router.url;
+      this.actualizarEstadoActivo();
+    });
+
+    // Inicializar con la URL actual
+    this.currentUrl = this.router.url;
+
     this.loadMenuItems();
   }
 
@@ -52,7 +68,7 @@ export class SidebarComponent {
         submenu: [
           {
             title: 'Lista de Usuarios',
-            route: './lista-usuarios',
+            route: './usuario',
             roles: ['superadmin']
           },
           {
@@ -86,6 +102,9 @@ export class SidebarComponent {
 
     // Filtrar elementos del menú según los roles del usuario
     this.menuItems = this.filtrarElementosPorRoles(allMenuItems);
+
+    // Actualizar el estado activo inicial
+    this.actualizarEstadoActivo();
   }
 
   /**
@@ -108,5 +127,60 @@ export class SidebarComponent {
 
       return tienePermiso;
     });
+  }
+
+  /**
+   * Actualiza el estado activo de los elementos del menú basado en la URL actual
+   */
+  actualizarEstadoActivo(): void {
+    this.recorrerYActualizarEstado(this.menuItems);
+  }
+
+  /**
+   * Recorre recursivamente los elementos del menú y actualiza su estado activo
+   */
+  recorrerYActualizarEstado(items: MenuItem[]): boolean {
+    let hayElementoActivo = false;
+
+    items.forEach(item => {
+      // Omitir encabezados
+      if (item.heading) return;
+
+      // Resetear el estado activo
+      item.active = false;
+
+      // Verificar si este elemento tiene una ruta y coincide con la URL actual
+      if (item.route) {
+        // Para la ruta raíz, verificar exactamente
+        if (item.route === '/' && this.currentUrl === '/') {
+          item.active = true;
+          hayElementoActivo = true;
+        } 
+        // Para otras rutas, verificar si la URL actual comienza con la ruta del elemento
+        // Usamos normalización de rutas para manejar './' y rutas relativas
+        else if (item.route !== '/') {
+          const normalizedRoute = item.route.startsWith('./') 
+            ? item.route.substring(1) // Quitar el punto de './'
+            : item.route;
+          
+          if (this.currentUrl.includes(normalizedRoute)) {
+            item.active = true;
+            hayElementoActivo = true;
+          }
+        }
+      }
+
+      // Si tiene submenú, verificar recursivamente
+      if (item.submenu) {
+        const subMenuActivo = this.recorrerYActualizarEstado(item.submenu);
+        // Si algún elemento del submenú está activo, el elemento padre también debe estar activo
+        if (subMenuActivo) {
+          item.active = true;
+          hayElementoActivo = true;
+        }
+      }
+    });
+
+    return hayElementoActivo;
   }
 }

@@ -31,5 +31,32 @@ export class PersonaService {
   actualizarImagenPerfil(formData: FormData) {
     return this.http.put<any>(`${this.configService.apiUrl}/personas/${this.usuarioService.Usuario.id_persona}`, formData);
   }
+
+  listarPersonas() {
+    return this.http.get(`${this.configService.apiUrl}/personas`)
+    .pipe(
+      tap((resp: any) => {
+        console.log(resp.msg);
+      })
+    );
+  }
+
+  eliminarPersona(id_persona: number) {
+    return this.http.delete(`${this.configService.apiUrl}/personas/${id_persona}`)
+   .pipe(
+      tap((resp: any) => {
+        console.log(resp.msg);
+      })
+    );
+  }
+
+  crearPersona(persona: Persona) {
+    return this.http.post(`${this.configService.apiUrl}/personas`, persona)
+   .pipe(
+      tap((resp: any) => {
+        console.log(resp.msg);
+      })
+    ); 
+  }
   
 }
